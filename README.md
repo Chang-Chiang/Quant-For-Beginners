@@ -140,7 +140,7 @@ Quant-for-Beginners/
 
 ---
 
-## 贡献
+## 作者
  Yibo Cheng (翊博)：项目发起人与主要维护者
  GitHub：[@yibohere](https://github.com/yibohere)
  
