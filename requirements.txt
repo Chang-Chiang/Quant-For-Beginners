@@ -3,5 +3,5 @@ numpy
 pandas
 matplotlib
 seaborn
-yfinance
+akshare
 scikit-learn

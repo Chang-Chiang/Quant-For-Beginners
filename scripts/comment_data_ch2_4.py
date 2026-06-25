@@ -10,15 +10,19 @@ warnings.filterwarnings('ignore')  # 忽略次要警告，输出更干净
 import numpy as np           # 数值计算
 import pandas as pd          # 表格数据处理
 import matplotlib.pyplot as plt  # 绘图
-import yfinance as yf        # 下载雅虎财经股票数据（需联网）
+import akshare as ak         # 下载股票行情（需联网）
 
-plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 黑体；Mac 可改 PingFang SC
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']  # Windows 黑体；Mac 可改 PingFang SC
 plt.rcParams['axes.unicode_minus'] = False     # 负号正常显示
 
 print('环境就绪 ✓')
 ''',
         6: r'''# ========== 下载苹果 AAPL 最近约 1 年的日线数据 ==========
-aapl = yf.download('AAPL', period='1y', progress=False, multi_level_index=False)  # 下载
+aapl = ak.stock_us_daily(symbol='AAPL', adjust="qfq")  # 下载苹果日线（前复权）
+if "date" in aapl.columns:                             # akshare 返回 date 列
+    aapl["date"] = pd.to_datetime(aapl["date"])        # 转为日期类型
+    aapl.set_index("date", inplace=True)               # 设为索引（对齐 yfinance 风格）
+aapl.rename(columns={"close": "Close", "volume": "Volume"}, inplace=True)  # 列名统一
 aapl = aapl.dropna()  # 删掉有空值的行，保证数据完整
 
 print('数据形状（行=交易日，列=字段）：', aapl.shape)  # 例如 (251, 5)
@@ -151,7 +155,12 @@ period = '1y'   # 时间长度，可改成 '6mo'、'2y'
 all_rets = {}   # 用字典存每只股票的中文名 → 日收益率序列
 
 for symbol, name in tickers.items():
-    data = yf.download(symbol, period=period, progress=False, multi_level_index=False).dropna()
+    data = ak.stock_us_daily(symbol=symbol, adjust="qfq")
+    if "date" in data.columns:
+        data["date"] = pd.to_datetime(data["date"])
+        data.set_index("date", inplace=True)
+    data.rename(columns={"close": "Close", "volume": "Volume"}, inplace=True)
+    data = data.dropna()
     all_rets[name] = data['Close'].pct_change().dropna()  # 只关心收盘价涨跌
     print(f'{name} ({symbol}): {len(all_rets[name])} 个交易日')
 
@@ -209,9 +218,9 @@ warnings.filterwarnings('ignore')  # 隐藏无关警告
 import numpy as np              # 数值计算
 import pandas as pd             # 表格数据
 import matplotlib.pyplot as plt   # 画图
-import yfinance as yf           # 下载股票行情（需联网）
+import akshare as ak            # 下载股票行情（需联网）
 
-plt.rcParams['font.sans-serif'] = ['SimHei']   # 图表中文
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']   # 图表中文
 plt.rcParams['axes.unicode_minus'] = False    # 负号正常
 
 TICKER = 'AAPL'   # 股票代码，可改成 TSLA、NVDA
@@ -263,9 +272,13 @@ plt.tight_layout()
 plt.show()
 ''',
         10: r'''# ========== 下载真实股票并计算 MA5、MA20 ==========
-raw = yf.download(TICKER, period=PERIOD, progress=False, multi_level_index=False)  # 下载行情
+raw = ak.stock_us_daily(symbol=TICKER, adjust="qfq")  # 下载行情（前复权）
+if "date" in raw.columns:                              # akshare 返回 date 列
+    raw["date"] = pd.to_datetime(raw["date"])          # 转为日期类型
+    raw.set_index("date", inplace=True)                # 设为索引
+raw.rename(columns={"close": "Close"}, inplace=True)  # 列名统一成 Close
+
 df = raw[['Close']].dropna().copy()   # 只留收盘价，去掉空行
-df.columns = ['Close']                # 列名统一成 Close
 
 df['MA5'] = df['Close'].rolling(5).mean()    # 5日均线 = 最近5天收盘均价
 df['MA20'] = df['Close'].rolling(20).mean()  # 20日均线
@@ -372,7 +385,8 @@ plt.tight_layout()
 plt.show()
 ''',
         20: r'''# ========== 放大最近6个月，看清买卖细节 ==========
-recent = df.last('6M') if len(df) > 120 else df.tail(120)  # 取最近约6个月
+cutoff = df.index[-1] - pd.DateOffset(months=6)  # 往前推6个月
+recent = df.loc[cutoff:] if len(df) > 120 else df.tail(120)  # 取最近约6个月
 buys_r = recent[recent['trade'] == 1]
 sells_r = recent[recent['trade'] == -1]
 
@@ -401,9 +415,9 @@ warnings.filterwarnings('ignore')
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import yfinance as yf
+import akshare as ak
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 TICKER = 'AAPL'      # 策略交易哪只股票
@@ -413,9 +427,13 @@ PERIOD = '2y'        # 回测样本长度
 print('环境就绪 ✓')
 ''',
         7: r'''# ========== 第1步：下载数据并算双均线 ==========
-raw = yf.download(TICKER, period=PERIOD, progress=False, multi_level_index=False)
+raw = ak.stock_us_daily(symbol=TICKER, adjust="qfq")  # 下载行情（前复权）
+if "date" in raw.columns:                              # akshare 返回 date 列
+    raw["date"] = pd.to_datetime(raw["date"])          # 转为日期类型
+    raw.set_index("date", inplace=True)                # 设为索引
+raw.rename(columns={"close": "Close"}, inplace=True)  # 列名统一
+
 df = raw[['Close']].dropna().copy()
-df.columns = ['Close']
 
 df['MA5'] = df['Close'].rolling(5).mean()
 df['MA20'] = df['Close'].rolling(20).mean()
@@ -471,7 +489,12 @@ df['strategy_ret'] = df['position'] * df['ret']
 df['buyhold_ret'] = df['ret']
 
 # ========== 基准2：同期持有大盘 SPY ==========
-spy = yf.download(BENCHMARK, period=PERIOD, progress=False, multi_level_index=False)[['Close']]
+spy_raw = ak.stock_us_daily(symbol=BENCHMARK, adjust="qfq")  # 下载 SPY 大盘数据
+if "date" in spy_raw.columns:
+    spy_raw["date"] = pd.to_datetime(spy_raw["date"])
+    spy_raw.set_index("date", inplace=True)
+spy_raw.rename(columns={"close": "Close"}, inplace=True)
+spy = spy_raw[['Close']].copy()
 spy.columns = ['SPY_Close']
 df = df.join(spy, how='inner')  # 按日期对齐，只保留两边都有数据的行
 df['market_ret'] = df['SPY_Close'].pct_change().fillna(0)
@@ -510,7 +533,8 @@ plt.tight_layout()
 plt.show()
 ''',
         13: r'''# ========== 近12个月局部放大 ==========
-recent = df.last('12M') if len(df) > 200 else df.tail(200)
+cutoff = df.index[-1] - pd.DateOffset(months=12)  # 往前推12个月
+recent = df.loc[cutoff:] if len(df) > 200 else df.tail(200)
 
 plt.figure(figsize=(14, 5))
 plt.plot(recent.index, recent['nav_strategy'], linewidth=2, label='双均线策略')

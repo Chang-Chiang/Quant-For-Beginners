@@ -18,7 +18,7 @@ import pandas as pd             # 处理表格数据（像 Excel 一张表）
 import matplotlib.pyplot as plt   # 画折线图、对比图
 
 # ========== 让图表能正确显示中文 ==========
-plt.rcParams['font.sans-serif'] = ['SimHei']   # 指定中文字体（Windows 常用黑体）
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']   # 指定中文字体（Windows 常用黑体）
 plt.rcParams['axes.unicode_minus'] = False    # 让坐标轴上的负号正常显示
 np.random.seed(7)                             # 固定随机种子：每次运行随机数相同，方便对照
 
@@ -74,7 +74,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-plt.rcParams['font.sans-serif'] = ['SimHei']      # 图表中文
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']      # 图表中文
 plt.rcParams['axes.unicode_minus'] = False
 
 np.random.seed(42)          # 固定随机数，结果可复现
@@ -111,7 +111,7 @@ print(f"最高价格: ¥{price.max():.2f}")            # 期间最高价
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 np.random.seed(2026)        # 固定随机种子
@@ -189,7 +189,7 @@ print("=" * 60)
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 np.random.seed(2026)
@@ -281,13 +281,17 @@ import warnings
 warnings.filterwarnings('ignore')   # 隐藏不影响学习的警告信息
 
 import matplotlib.pyplot as plt     # 画图
-import yfinance as yf               # 从雅虎财经免费下载行情
+import akshare as ak                # 下载股票行情（需联网）
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
-# 一行下载苹果 AAPL 最近 6 个月的日线（需要联网）
-aapl = yf.download('AAPL', period='6mo', progress=False, multi_level_index=False)
+# 下载苹果 AAPL 日线数据（需要联网）
+aapl = ak.stock_us_daily(symbol='AAPL', adjust="qfq")
+if "date" in aapl.columns:                             # akshare 返回 date 列
+    aapl["date"] = pd.to_datetime(aapl["date"])        # 转为日期类型
+    aapl.set_index("date", inplace=True)               # 设为索引
+aapl.rename(columns={"close": "Close", "volume": "Volume"}, inplace=True)  # 列名统一
 
 print('🎉 恭喜！你已经拿到真实股票数据')
 print(f'   共 {len(aapl)} 个交易日')                              # 行数 = 交易日个数

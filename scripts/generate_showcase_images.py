@@ -9,14 +9,24 @@ warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import yfinance as yf
+import akshare as ak
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "images"
 OUT.mkdir(parents=True, exist_ok=True)
 
-plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "DejaVu Sans"]
+plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "Microsoft YaHei", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
+
+
+def _download(symbol: str) -> pd.DataFrame:
+    """Download US stock daily data via akshare and return a yfinance-style DataFrame."""
+    df = ak.stock_us_daily(symbol=symbol, adjust="qfq")
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"])
+        df.set_index("date", inplace=True)
+    df.rename(columns={"close": "Close", "volume": "Volume"}, inplace=True)
+    return df
 
 
 def save(fig, name: str) -> None:
@@ -27,7 +37,7 @@ def save(fig, name: str) -> None:
 
 
 def ch02_returns():
-    aapl = yf.download("AAPL", period="1y", progress=False, multi_level_index=False)
+    aapl = _download("AAPL")
     rets = aapl["Close"].pct_change().dropna()
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     axes[0].plot(rets.index, rets.values, color="steelblue", lw=0.9)
@@ -41,7 +51,7 @@ def ch02_returns():
 
 
 def ch03_ma_signals():
-    df = yf.download("AAPL", period="2y", progress=False, multi_level_index=False)[["Close"]]
+    df = _download("AAPL")[["Close"]]
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA20"] = df["Close"].rolling(20).mean()
     df["spread"] = df["MA5"] - df["MA20"]
@@ -62,15 +72,15 @@ def ch03_ma_signals():
 
 
 def ch04_backtest():
-    ticker, bench, period = "AAPL", "SPY", "2y"
-    df = yf.download(ticker, period=period, progress=False, multi_level_index=False)[["Close"]]
+    ticker, bench = "AAPL", "SPY"
+    df = _download(ticker)[["Close"]]
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA20"] = df["Close"].rolling(20).mean()
     df["signal"] = (df["MA5"] > df["MA20"]).astype(int)
     df["position"] = df["signal"].shift(1).fillna(0)
     df["ret"] = df["Close"].pct_change().fillna(0)
     df["strategy_ret"] = df["position"] * df["ret"]
-    spy = yf.download(bench, period=period, progress=False, multi_level_index=False)[["Close"]]
+    spy = _download(bench)[["Close"]]
     spy.columns = ["SPY"]
     df = df.join(spy, how="inner")
     df["market_ret"] = df["SPY"].pct_change().fillna(0)
@@ -90,7 +100,7 @@ def ch04_backtest():
 
 
 def ch01_stock():
-    aapl = yf.download("AAPL", period="6mo", progress=False, multi_level_index=False)
+    aapl = _download("AAPL")
     fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True, gridspec_kw={"height_ratios": [3, 1]})
     axes[0].plot(aapl.index, aapl["Close"], color="tab:blue", lw=1.5)
     axes[0].set_title("第一章爽点 · 真实苹果 AAPL 股票数据")
