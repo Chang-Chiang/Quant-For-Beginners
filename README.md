@@ -1,163 +1,128 @@
-<p align="center">
-  <a href="notebooks/phase1_intro/01_什么是量化金融.ipynb">
-    <img src="notebooks/phase1_intro/yibo-quant.jpg" width="100%" alt="和Yibo零基础学习量化金融 · 从Python到AI量化交易实战" style="max-width: 920px; border-radius: 8px;"/>
-  </a>
-</p>
+# 量化学习
 
-<p align="center">
-  <strong>Quant-for-Beginners</strong> · 中文零基础量化金融 Notebook 路线 · Phase 1 已上线
-</p>
+基于 [Quant-for-Beginners](https://github.com/yibohere/Quant-for-Beginners) 教程学习后，将 Notebook 中的可复用代码重构为独立 Python 模块。
 
-<p align="center">
-  <a href="requirements.txt"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/></a>
-  <a href="notebooks/"><img src="https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat-square&logo=jupyter&logoColor=white" alt="Jupyter"/></a>
-  <a href="notebooks/phase1_intro/"><img src="https://img.shields.io/badge/Phase_1-4_chapters-2ea043?style=flat-square" alt="Phase 1"/></a>
-</p>
+## 目录
 
-<p align="center">
-  <a href="#快速开始">快速开始</a> ·
-  <a href="#课程目录">课程目录</a> ·
-  <a href="#学习路线">学习路线</a> ·
-  <a href="#路线图">后续规划</a>
-</p>
+- [项目结构](#项目结构)
+- [快速开始](#快速开始)
+- [模块说明](#模块说明)
+- [教程笔记](#教程笔记)
+- [参考](#参考)
 
 ---
 
-## 简介
+## 项目结构
 
-哈喽大家好我是Yibo, 这是一份面向**零基础**读者的中文量化金融教程。每章可在约 30 分钟内跑通：**真实数据 → 收益率分析 → 双均线策略 → 回测评估**。
-
-本仓库由 **Yibo** 整理维护：侧重可运行的 Notebook 与清晰图示，而非堆砌公式。内容持续更新，欢迎 Star 以便后续查阅。
-
-| 项目 | 说明 |
-|------|------|
-| 形式 | Jupyter Notebook + 配套交互 HTML |
-| 数据 | `yfinance` 免费日线行情 |
-| 第一期 | 4 章（已全部上线） |
-| 不适合 | 已具备完整回测框架、仅需高级因子参考的读者 |
+```
+├── src/                       # 重构后的 Python 模块
+│   ├── data/                  # 数据获取与收益率计算
+│   ├── strategies/            # 策略逻辑（双均线信号生成）
+│   ├── backtest/              # 回测引擎与风险指标
+│   ├── portfolio/             # 组合分析（等权组合、相关性）
+│   ├── visualization/         # 可视化（净值曲线、热力图等）
+│   └── main.py                # 示例入口
+├── notebooks/                 # 原始教程 Notebook
+│   ├── phase1_intro/          # Phase 1：量化入门（4 章）
+│   └── phase2_intro/          # Phase 2：风险与组合管理（4 章）
+├── assets/interactive/        # 交互式 HTML 演示
+├── docs/
+│   ├── notes.md               # 学习笔记
+│   └── ROADMAP.md             # 原项目路线图
+└── requirements.txt
+```
 
 ---
 
 ## 快速开始
 
 ```bash
-git clone https://github.com/yibohere/Quant-for-Beginners.git
-cd Quant-for-Beginners
 pip install -r requirements.txt
-jupyter lab
+python src/main.py
 ```
 
----
-
-## 课程目录
-| 章 | 主题 | Notebook | 你将完成 |
-|:--:|------|----------|----------|
-| 01 | 什么是量化金融 | [打开](notebooks/phase1_intro/01_什么是量化金融.ipynb) | 建立量化直觉；下载真实 AAPL 行情 |
-| 02 | 你的第一个量化实验 | [打开](notebooks/phase1_intro/02_你的第一个量化实验.ipynb) | OHLCV、收益率、波动对比 |
-| 03 | 移动平均线策略 | [打开](notebooks/phase1_intro/03_移动平均线策略.ipynb) | MA5/MA20、金叉/死叉、首个交易规则 |
-| 04 | 策略回测 | [打开](notebooks/phase1_intro/04_策略回测.ipynb) | 模拟交易、净值曲线、胜率与回撤 |
-
-**配套演示**：[布朗运动与随机游走](assets/interactive/brownian-random-walk.html)（浏览器本地打开，对应第一章理论部分）
+`main.py` 演示完整流程：下载 AAPL 数据 → 双均线策略回测 → 输出指标 → 保存图表到 `output/`。
 
 ---
 
-## 章节预览
+## 模块说明
 
-<p align="center">
-  <img src="assets/images/ch01_real_stock.png" width="48%" alt="第一章"/>
-  <img src="assets/images/ch02_returns.png" width="48%" alt="第二章"/>
-</p>
-<p align="center">
-  <img src="assets/images/ch03_ma_signals.png" width="48%" alt="第三章"/>
-  <img src="assets/images/ch04_backtest.png" width="48%" alt="第四章"/>
-</p>
+### data — 数据获取与收益率
 
-<p align="center"><sub>章节示意图见 <code>assets/images/</code>；本地运行 Notebook 可得到交互式图表</sub></p>
+```python
+from src.data import fetch_us_close, daily_returns, annualize_volatility
 
----
-
-## 学习路线
-
-```
-Phase 1（当前）
-├── 01 量化认知与真实数据
-├── 02 收益率与数据分析
-├── 03 双均线策略
-└── 04 策略回测
-
-Phase 2（规划）  风险指标 · 波动率 · 多标的分析
-Phase 3（规划）  因子 · 组合 · 夏普比率
-Phase 4（规划）  机器学习与 AI 量化
+close = fetch_us_close("AAPL", years=2)
+ret = daily_returns(close).dropna()
+vol = annualize_volatility(ret)
 ```
 
-| 章节 | 进度称号 |
-|------|----------|
-| 第 1 章 | Lv.1 量化探索者 |
-| 第 2 章 | Lv.1 数据分析 |
-| 第 3 章 | Lv.2 策略设计师 |
-| 第 4 章 | Lv.3 回测分析师 |
+- `fetch_us_close(symbol, years)` — AkShare 下载美股收盘价
+- `fetch_us_prices(tickers, years)` — 批量下载，返回对齐宽表
+- `daily_returns(close)` — 日收益率 `pct_change()`
+- `annualize_return / annualize_volatility` — 年化指标
 
----
+### strategies — 策略逻辑
 
-## 仓库结构
+```python
+from src.strategies import generate_signal, detect_crossover
 
-```
-Quant-for-Beginners/
-├── notebooks/phase1_intro/   # 第一期课程
-├── assets/
-│   ├── images/               # README 与传播用配图
-│   └── interactive/          # 独立 HTML 演示
-├── scripts/                  # 配图生成、Notebook 维护脚本
-├── docs/ROADMAP.md           # 详细路线图
-├── src/                      # 可复用模块（建设中）
-└── requirements.txt
+signal = generate_signal(close, short_window=5, long_window=20)
 ```
 
+- `generate_signal(close, short, long)` — 双均线信号（1=持仓, 0=空仓）
+- `detect_crossover(short_ma, long_ma)` — 金叉/死叉检测
+
+### backtest — 回测与风险指标
+
+```python
+from src.backtest import run_backtest, max_drawdown, sharpe_ratio, beta_vs_market
+
+result = run_backtest(close, signal)
+print(max_drawdown(result["nav"]))
+print(sharpe_ratio(ret))
+```
+
+- `run_backtest(close, signal)` — 模拟交易，返回含净值的 DataFrame
+- `max_drawdown(equity)` / `compute_drawdown(equity)` — 最大回撤
+- `sharpe_ratio(ret, rf)` — 夏普比率
+- `beta_vs_market(stock, market)` — Beta
+
+### portfolio — 组合分析
+
+```python
+from src.portfolio import equal_weight_returns, correlation_matrix
+
+port_ret = equal_weight_returns(returns, ["AAPL", "MSFT", "JPM", "XLE"])
+corr = correlation_matrix(returns)
+```
+
+### visualization — 可视化
+
+```python
+from src.visualization import plot_nav_curves, plot_drawdown, plot_heatmap
+
+plot_nav_curves({"策略": nav, "买入持有": bh}, save_path="output/nav.png")
+```
+
+所有画图函数支持 `save_path` 参数：传路径则保存文件，为 `None` 则弹窗显示。
+
 ---
 
-## 后续规划
+## 教程笔记
 
-| 章节 | 主题 | 状态 |
-|------|------|------|
-| 05 | AI 预测涨跌（入门） | 规划中 |
-| 06 | XGBoost 量化策略 | 规划中 |
-| 07 | LSTM 时间序列 | 规划中 |
-| 08 | Transformer 交易 | 规划中 |
-| 09 | 多因子选股 | 规划中 |
-| 10 | AI 量化系统搭建 | 规划中 |
+学习过程中的要点整理见 [docs/notes.md](docs/notes.md)，覆盖 8 章核心概念、公式和代码模式。
 
-完整说明见 [docs/ROADMAP.md](docs/ROADMAP.md)。
+原始 Notebook 课程目录见 [notebooks/README.md](notebooks/README.md)。
 
 ---
 
-## Star 趋势
-<p align="center">
-  <a href="https://www.star-history.com/#yibohere/Quant-for-Beginners&Date">
-    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=yibohere/Quant-for-Beginners&type=date&legend=top-left" width="700" />
-  </a>
-</p>
----
+## 参考
 
----
-
-## 作者
- Yibo Cheng (翊博)：项目发起人与主要维护者
- GitHub：[@yibohere](https://github.com/yibohere)
- 
----
-
-## 贡献
-
-欢迎提交 Issue / Pull Request：文案优化、图示改进、示策略例与勘误。
+- 原教程： [Quant-for-Beginners](https://github.com/yibohere/Quant-for-Beginners) by [Yibo Cheng (@yibohere)](https://github.com/yibohere)
 
 ---
 
 ## 免责声明
 
 本仓库仅供学习与研究，**不构成任何投资建议**。历史回测结果不代表未来表现，市场有风险。
-
----
-
-<p align="center">
-  <sub>如果这份路线对你有帮助，欢迎 Star</sub>
-</p>
